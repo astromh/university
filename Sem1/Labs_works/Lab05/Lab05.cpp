@@ -22,12 +22,24 @@ int main()
     cout << "Now Enter " << N*M << " elements (row by row):\n";
     for (int i=0; i<N; ++i){
         for (int j=0; j<M; ++j){
-            Arr[i][j] = ReadIntElement("Arr["+to_string(i)+"]["+to_string(j)+"] = ");
+            //Arr[i][j] = ReadIntElement("Arr["+to_string(i)+"]["+to_string(j)+"] = ");
             cout << "Arr["<<i<<"]["<<j<<"] = ";
             while (!(cin >> Arr[i][j])){
-                cout << "[-] Invalid input! Please enter and integer number!";
+                cout << "[-] Invalid input! Please enter and integer number!\n";
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "Arr["<<i<<"]["<<j<<"] = ";
+                
             }
         }
+    }
+
+    cout << "\nMatrix:\n";
+    for (int i=0; i<N; ++i){
+        for (int j=0; j<M; ++j){
+            cout << Arr[i][j] << "\t";
+        }
+        cout << "\n";
     }
 
     for (int i=0; i<N; ++i){
