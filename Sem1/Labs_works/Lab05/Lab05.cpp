@@ -5,6 +5,7 @@ using namespace std;
 
 int ReadPositiveInt(const string& prompt, int MaxValue);
 int ReadIntElement(const string& prompt);
+int OriginalSum(int** A, int N, int M);
 
 int main()
 {
@@ -34,6 +35,9 @@ int main()
         }
     }
 
+    int Sum = OriginalSum(Arr, N, M);
+    cout << "\nThe sum of the original matrix is: " << Sum << "\n";
+
     cout << "\nMatrix:\n";
     for (int i=0; i<N; ++i){
         for (int j=0; j<M; ++j){
@@ -47,6 +51,18 @@ int main()
     }
     delete[] Arr;
 
+    return 0;
+}
+
+int OriginalSum(int** A, int N, int M){
+    int sum = 0;
+
+    for (int i=0; i<N; ++i){
+        for (int j=0; j<M; ++j){
+            sum += A[i][j];
+        }
+    }
+    return sum;
 }
 
 int ReadPositiveInt(const string& prompt, int MaxValue){
