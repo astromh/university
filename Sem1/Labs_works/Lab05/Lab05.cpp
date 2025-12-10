@@ -22,9 +22,9 @@ int main()
     GetConsoleScreenBufferInfo(hStdOut, &startInfo);
 
     //RGB Changing zone!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    const int BG_R = 200;
-    const int BG_G = 33;
-    const int BG_B = 20;
+    const int BG_R = 255;
+    const int BG_G = 255;
+    const int BG_B = 255;
 
     WORD bgAttr = MakeBackgroundAttrs(BG_R, BG_G, BG_B);
     WORD fgAttr = MakeForegroundAttrs(BG_R, BG_G, BG_B);
@@ -85,7 +85,7 @@ int main()
     delete[] Arr;
 
     SetConsoleTextAttribute(hStdOut, startInfo.wAttributes);
-    cout << "\n[Colors restored to original settings]\n";
+    cout << "\n[+] Colors restored to original settings!\n";
     return 0;
 }
 
