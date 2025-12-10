@@ -22,9 +22,9 @@ int main()
     GetConsoleScreenBufferInfo(hStdOut, &startInfo);
 
     //RGB Changing zone!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    const int BG_R = 186;
-    const int BG_G = 220;
-    const int BG_B = 50;
+    const int BG_R = 200;
+    const int BG_G = 33;
+    const int BG_B = 20;
 
     WORD bgAttr = MakeBackgroundAttrs(BG_R, BG_G, BG_B);
     WORD fgAttr = MakeForegroundAttrs(BG_R, BG_G, BG_B);
