@@ -1,10 +1,13 @@
 #include <iostream>
 #include <limits>
+#include <windows.h>
 
 using namespace std;
 
 int ReadPositiveInt(const string& prompt, int MaxValue);
 void TransformDifferences(int** A, int N, int M);
+WORD MakeBackgroundAttrs(int r, int g, int b);
+WORD MakeForegroundAttrs(int r, int g, int b);
 int ReadIntElement(const string& prompt);
 long long NewSum(int** A, int N, int M);
 int OriginalSum(int** A, int N, int M);
@@ -13,6 +16,22 @@ int main()
 {
     const int MAXN = 100;
     const int MAXM = 100;
+
+    HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO startInfo;
+    GetConsoleScreenBufferInfo(hStdOut, &startInfo);
+
+    //RGB Changing zone!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    const int BG_R = 186;
+    const int BG_G = 220;
+    const int BG_B = 50;
+
+    WORD bgAttr = MakeBackgroundAttrs(BG_R, BG_G, BG_B);
+    WORD fgAttr = MakeForegroundAttrs(BG_R, BG_G, BG_B);
+
+    WORD CombinedAttr = bgAttr | fgAttr;
+
+    SetConsoleTextAttribute(hStdOut, CombinedAttr);
 
     int N = ReadPositiveInt("Enter number of rows N: ", MAXN);
     int M = ReadPositiveInt("Enter number of columns M: ", MAXM);
@@ -65,8 +84,37 @@ int main()
     }
     delete[] Arr;
 
+    SetConsoleTextAttribute(hStdOut, startInfo.wAttributes);
+    cout << "\n[Colors restored to original settings]\n";
     return 0;
 }
+
+WORD MakeBackgroundAttrs(int r, int g, int b){
+    WORD attr = 0;
+
+    if (r > 64) attr |= BACKGROUND_RED;
+    if (g > 64) attr |= BACKGROUND_GREEN;
+    if (b > 64) attr |= BACKGROUND_BLUE;
+
+    if (r > 200 || g > 200 || b > 200){
+        attr |= BACKGROUND_INTENSITY;
+    }
+
+    return attr;
+ }
+
+ WORD MakeForegroundAttrs(int r, int g, int b){
+    double luminance = 0.2126*r + 0.7152*g + 0.0722*b;
+
+    WORD fg = 0;
+
+    if (luminance > 140.0){
+        fg = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+    } else {
+        fg = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
+    }
+    return fg;
+ }
 
 void TransformDifferences(int** A, int N, int M){
     int total = N*M;
