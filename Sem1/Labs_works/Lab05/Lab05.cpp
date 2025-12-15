@@ -4,6 +4,7 @@
 
 using namespace std;
 
+WORD MakeLastElemForegroundAttrs(int r, int g, int b, WORD baseFg, WORD accentFg);
 WORD MakeAccentForegroundAttrs(int r, int g, int b, WORD baseFg);
 int ReadPositiveInt(const string& prompt, int MaxValue);
 void TransformDifferences(int** A, int N, int M);
@@ -31,6 +32,10 @@ int main()
 
     WORD baseFg   = MakeForegroundAttrs(BG_R, BG_G, BG_B);
     WORD accentFg = MakeAccentForegroundAttrs(BG_R, BG_G, BG_B, baseFg);
+
+    WORD lastFg = MakeLastElemForegroundAttrs(BG_R, BG_G, BG_B, baseFg, accentFg);
+    WORD lastElemAttr = bgAttr | lastFg;
+
 
     WORD baseAttr   = bgAttr | baseFg;
     WORD accentAttr = bgAttr | accentFg;
@@ -77,14 +82,22 @@ int main()
     cout << "\nTransformed Matrix:\n";
     for (int i=0; i<N; ++i){
         for (int j=0; j<M; ++j){
-            cout << Arr[i][j] << "\t";
+            if (i == N-1 && j == M-1) {
+                SetConsoleTextAttribute(hStdOut, lastElemAttr);
+                cout << Arr[i][j] << "\t";
+                SetConsoleTextAttribute(hStdOut, accentAttr); // back to accent
+            } else {
+                cout << Arr[i][j] << "\t";
+            }
         }
         cout << "\n";
     }
     SetConsoleTextAttribute(hStdOut, baseAttr);
 
+    SetConsoleTextAttribute(hStdOut, accentAttr);
     long long TransformedSum = NewSum(Arr, N, M);
     cout << "\nThe sum of the new translformed matrix is: " << TransformedSum << "\n";
+    SetConsoleTextAttribute(hStdOut, baseAttr);
 
     for (int i=0; i<N; ++i){
         delete[] Arr[i];
@@ -149,6 +162,30 @@ WORD MakeBackgroundAttrs(int r, int g, int b){
     return lightBg ? (WORD)(FOREGROUND_BLUE) : (WORD)(FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
 }
 
+WORD MakeLastElemForegroundAttrs(int r, int g, int b, WORD baseFg, WORD accentFg)
+{
+    const double luminance = 0.2126*r + 0.7152*g + 0.0722*b;
+    const bool lightBg = (luminance > 140.0);
+
+    WORD candidates[4];
+
+    if (lightBg) {
+        candidates[0] = 0;                                      // black
+        candidates[1] = FOREGROUND_BLUE;                        // dark blue
+        candidates[2] = FOREGROUND_RED;                         // dark red
+        candidates[3] = FOREGROUND_RED | FOREGROUND_BLUE;       // dark magenta
+    } else {
+        candidates[0] = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY; // yellow
+        candidates[1] = FOREGROUND_RED | FOREGROUND_INTENSITY;                   // bright red
+        candidates[2] = FOREGROUND_BLUE | FOREGROUND_INTENSITY;                  // bright blue
+        candidates[3] = FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_INTENSITY; // magenta
+    }
+
+    for (WORD fg : candidates) {
+        if (fg != baseFg && fg != accentFg) return fg;
+    }
+    return candidates[0];
+}
 
 void TransformDifferences(int** A, int N, int M){
     int total = N*M;
