@@ -23,8 +23,8 @@ int main()
 
     //RGB Changing zone!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     const int BG_R = 255;
-    const int BG_G = 255;
-    const int BG_B = 255;
+    const int BG_G = 34;
+    const int BG_B = 24;
 
     WORD bgAttr = MakeBackgroundAttrs(BG_R, BG_G, BG_B);
     WORD fgAttr = MakeForegroundAttrs(BG_R, BG_G, BG_B);
