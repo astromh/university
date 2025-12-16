@@ -53,7 +53,7 @@ int main() {
             return x >= b - tiny;
     };
 
-    double span = fabs(b - a);
+    double span = sqrt(fabs(b*b - a*a));
     if (span > 0 && fabs(h) > 0 && span / fabs(h) > 1e7) {
         cout << "[!] Too many steps (" << span / fabs(h)
         << "). Choose a larger |h|.\n";
