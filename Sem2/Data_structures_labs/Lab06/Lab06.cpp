@@ -1,5 +1,4 @@
 #include <iostream>
-#include <windows.h>
 #include <limits>
 #include <cmath>
 #include <vector>
@@ -7,7 +6,8 @@
 using namespace std;
 
 int ReadPositiveInt(const string& prompt, int MaxValue);
-int SortDescending(int element);
+int BubbleSortDescending(int element);
+void BubbleSortAscending(int* arr, int size);
 
 int main()
 {
@@ -22,7 +22,7 @@ int main()
         Arr[i] = new int[M];
     }
 
-    cout << "\n Now enter " << (N*M) << " elements (row by row): ";
+    cout << "\n Now enter " << (N*M) << " elements (row by row): \n";
     for (int i=0; i<N; ++i){
         for (int j=0; j<M ; ++j){
             cout << "Arr[" << i << "][" << j << "] = ";
@@ -35,6 +35,7 @@ int main()
         }
     }
 
+    // Printing out the oroginal input matrix
     cout << "\n\n Original Matrix: \n";
     for (int i=0; i<N; ++i){
         for (int j=0; j<M; ++j) {
@@ -43,12 +44,19 @@ int main()
         cout << "\n";
     }
 
+    // Sorting the numbers (task 1)
     for (int i=0; i<N; ++i){
         for (int j=0; j<M; ++j){
-            Arr[i][j] = SortDescending(Arr[i][j]);
+            Arr[i][j] = BubbleSortDescending(Arr[i][j]);
         }
     }
 
+    // Sorting the rows (task 2)
+    for (int i=0; i<N; ++i) {
+        BubbleSortAscending(Arr[i], M);
+    }
+
+    // Printing out the final matrix
     cout << "\n\n New Matrix: \n";
     for (int i=0; i<N; ++i){
         for (int j=0; j<M; ++j) {
@@ -62,13 +70,30 @@ int main()
     }
     delete[] Arr;
 
+    return 0;
 }
 
-int SortDescending(int element){
+// Bubble sort for sorting elements in each row so the row is in an ascending order
+void BubbleSortAscending(int* arr, int size) {
+    for (int i=0; i<size-1; ++i){
+        for (int j=0; j<size-1-i; ++j){
+            if (arr[j] > arr[j+1]){
+                int t = arr[j];
+                arr[j] = arr[j+1];
+                arr[j+1] = t;
+        }
+        }
+    }
+}
 
+// Function for extracting the digits and sorting them in a descending order
+int BubbleSortDescending(int element){
+
+    int sign = (element < 0 ? -1 : 1);
     element = abs(element);
     if (element == 0) return 0;
 
+    // Getting the size of the integer given
     int temp = element, count = 0;
     while (temp > 0) {
         ++count;
@@ -77,6 +102,7 @@ int SortDescending(int element){
 
     vector<int> digits(count);
 
+    // Breaking the integer into digits for sorting
     for (int i = count -1; i >= 0; i--){
         digits[i] = element % 10;
         element /= 10;
@@ -97,12 +123,14 @@ int SortDescending(int element){
 
     int result = 0;
 
+    // Building the integer from the "digits" array
     for (int i=0; i<n; ++i) {
         result = result * 10 + digits[i];
     }
-    return result;
+    return sign*result;
 }
 
+// Function for controlling the input strictly
 int ReadPositiveInt(const string& prompt, int MaxValue) {
     int x;
     while (true) {
