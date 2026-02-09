@@ -2,12 +2,16 @@
 #include <limits>
 #include <cmath>
 #include <vector>
+#include <random>
 
 using namespace std;
 
 int ReadPositiveInt(const string& prompt, int MaxValue);
 int BubbleSortDescending(int element);
 void BubbleSortAscending(int* arr, int size);
+void ManualInput(int** Arr, int N, int M);
+void RandomInput(int** Arr, int N, int M);
+
 
 int main()
 {
@@ -22,18 +26,28 @@ int main()
         Arr[i] = new int[M];
     }
 
-    cout << "\n Now enter " << (N*M) << " elements (row by row): \n";
-    for (int i=0; i<N; ++i){
-        for (int j=0; j<M ; ++j){
-            cout << "Arr[" << i << "][" << j << "] = ";
-            while (!(cin >> Arr[i][j])) {
-                cout << "[-] Invalid input please try again. \n";
-                cin.clear();
-                cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                cout << "Arr["<<i<<"]["<<j<<"] = ";
-            }
-        }
+    char input_value;
+    do {
+        cout << "\nDo you want to Randomly generate the Matrix or enter it manulay? (R/M): ";
+        cin >> input_value;
+    } while (input_value != 'R' && input_value != 'M');
+
+
+    // Check the condtion for random or munal function call
+    // do-While loop while the input is not M or R
+    //if (M) {
+    // Manual function
+    //} elif (R) {
+    // Random function
+    //}
+
+    if (input_value == 'M') {
+        ManualInput(Arr, N, M);
+    } 
+    else if (input_value == 'R') {
+        RandomInput(Arr, N, M);
     }
+
 
     // Printing out the oroginal input matrix
     cout << "\n\n Original Matrix: \n";
@@ -71,6 +85,34 @@ int main()
     delete[] Arr;
 
     return 0;
+}
+
+void RandomInput(int** Arr, int N, int M) {
+    random_device rd;
+    mt19937 gen(rd());
+
+    uniform_int_distribution<int> dist(0, 9999);
+    
+    for (int i=0; i<N; ++i){
+        for (int j=0; j<M; ++j){
+            Arr[i][j] = dist(gen);
+        }
+    }
+}
+
+void ManualInput(int** Arr, int N, int M) {
+    cout << "\n Now enter " << (N*M) << " elements (row by row): \n";
+    for (int i=0; i<N; ++i){
+        for (int j=0; j<M ; ++j){
+            cout << "Arr[" << i << "][" << j << "] = ";
+            while (!(cin >> Arr[i][j])) {
+                cout << "[-] Invalid input please try again. \n";
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "Arr["<<i<<"]["<<j<<"] = ";
+            }
+        }
+    }
 }
 
 // Bubble sort for sorting elements in each row so the row is in an ascending order
