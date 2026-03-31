@@ -12,21 +12,18 @@ using namespace std;
 struct Stats {
     long long cmp = 0;   
     long long swp = 0;   
-    long long mov = 0;   
 };
 
 struct ResultRow {
     string name;
     long long cmp;
     long long swp;
-    long long mov;
 };
 
 using SortFn = void(*)(int* arr, int n, bool ascending, Stats& s);
 
 static inline void SwapCount(int& a, int& b, Stats& s) {
-    ++s.swp;
-    s.mov += 2;
+    ++s.swp; // CHANGED: mov removed
     int t = a;
     a = b;
     b = t;
@@ -72,9 +69,10 @@ int main() {
     do {
         cout << "\nDo you want to Randomly generate the Matrix or enter it manually? (r/m): ";
         cin >> input_value;
-    } while (input_value != 'r' && input_value != 'm' && input_value != 'R' && input_value != 'M');
+        input_value = (char)tolower((unsigned char)input_value); // CHANGED
+    } while (input_value != 'r' && input_value != 'm');
 
-    if (input_value == 'm' || input_value == 'M') ManualInput(Arr, N, M);
+    if (input_value == 'm') ManualInput(Arr, N, M);
     else RandomInput(Arr, N, M);
 
     cout << "\n\nOriginal Matrix:\n";
@@ -85,39 +83,42 @@ int main() {
     // Bubble
     {
         Stats st = RunAndPrint(Arr, N, M, "Bubble", BubbleSort);
-        table.push_back({"Bubble", st.cmp, st.swp, st.mov});
+        table.push_back({"Bubble", st.cmp, st.swp}); // CHANGED
     }
 
     // Insertion
     {
         Stats st = RunAndPrint(Arr, N, M, "Insertion", InsertionSort);
-        table.push_back({"Insertion", st.cmp, st.swp, st.mov});
+        table.push_back({"Insertion", st.cmp, st.swp}); // CHANGED
     }
 
     // Selection
     {
         Stats st = RunAndPrint(Arr, N, M, "Selection", SelectionSort);
-        table.push_back({"Selection", st.cmp, st.swp, st.mov});
+        table.push_back({"Selection", st.cmp, st.swp}); // CHANGED
     }
 
     // Shell
     {
         Stats st = RunAndPrint(Arr, N, M, "Shell", ShellSort);
-        table.push_back({"Shell", st.cmp, st.swp, st.mov});
+        table.push_back({"Shell", st.cmp, st.swp}); // CHANGED
     }
 
     // Quick
     {
         Stats st = RunAndPrint(Arr, N, M, "Quick", QuickSort);
-        table.push_back({"Quick", st.cmp, st.swp, st.mov});
+        table.push_back({"Quick", st.cmp, st.swp}); // CHANGED
     }
 
-    cout << "\n\n===== Efficiency Table (comparisons / swaps / moves) =====\n";
-    cout << "Method\t\tComparisons\tSwaps\tMoves\n";
+    cout << "\n\n===== Efficiency Table (comparisons / swaps) =====\n"; // CHANGED
+    cout << left << setw(12) << "Method"
+         << right << setw(14) << "Comparisons"
+         << right << setw(10) << "Swaps" << "\n"; // CHANGED
+
     for (const auto& r : table) {
-        cout << left << setw(12) << r.name << 
-        right << setw(14) << r.cmp << right << setw(14) << 
-        right << setw(10) <<r.swp << right <<  setw(10) << r.mov << "\n";
+        cout << left  << setw(12) << r.name
+             << right << setw(14) << r.cmp
+             << right << setw(10) << r.swp << "\n"; // CHANGED
     }
 
     FreeMatrix(Arr, N);
@@ -142,17 +143,15 @@ void InsertionSort(int* arr, int n, bool ascending, Stats& s) {
         int j = i - 1;
 
         while (j >= 0) {
-            ++s.cmp; 
+            ++s.cmp;
             bool needShift = ascending ? (arr[j] > key) : (arr[j] < key);
             if (!needShift) break;
 
             arr[j + 1] = arr[j];
-            ++s.mov;       
             --j;
         }
 
         arr[j + 1] = key;
-        ++s.mov;           
     }
 }
 
@@ -175,17 +174,15 @@ void ShellSort(int* arr, int n, bool ascending, Stats& s) {
             int j = i;
 
             while (j >= gap) {
-                ++s.cmp; 
+                ++s.cmp;
                 bool needShift = ascending ? (arr[j - gap] > temp) : (arr[j - gap] < temp);
                 if (!needShift) break;
 
                 arr[j] = arr[j - gap];
-                ++s.mov;    
                 j -= gap;
             }
 
             arr[j] = temp;
-            ++s.mov;        
         }
     }
 }
@@ -228,19 +225,16 @@ int DigitSortByMethod(int element, SortFn sorter, Stats& s) {
 
     if (element == 0) return 0;
 
-    // count digits
     int temp = element, count = 0;
     while (temp > 0) { ++count; temp /= 10; }
 
     vector<int> digits(count);
 
-    // extract digits into digits[]
     for (int i = count - 1; i >= 0; --i) {
         digits[i] = element % 10;
         element /= 10;
     }
 
-   
     sorter(digits.data(), (int)digits.size(), /*ascending=*/false, s);
 
     int result = 0;
@@ -330,16 +324,29 @@ int ReadPositiveInt(const string& prompt, int MaxValue) {
     int x;
     while (true) {
         cout << prompt;
-        if (!(cin >> x)) {
-            cout << "[-] Invalid input, please try again!\n";
+        string token;
+        if (!(cin >> token)) {
+            cout << "[-] Invalid input, please try again!\n"; 
             cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
             continue;
         }
-        if (x <= 0 || x > MaxValue) {
-            cout << "[-] The input must be between 1 and " << MaxValue << ". Try again.\n";
+
+        size_t pos = 0;
+        try {
+            long long val = stoll(token, &pos);
+            if (pos != token.size()) {
+                cout << "[-] Invalid input, please try again!\n";
+                continue;
+            }
+            if (val <= 0 || val > MaxValue) {
+                cout << "[-] The input must be between 1 and " << MaxValue << ". Try again.\n";
+                continue;
+            }
+            x = (int)val;
+            return x;
+        } catch (...) {
+            cout << "[-] Invalid input, please try again!\n";
             continue;
         }
-        return x;
     }
 }
