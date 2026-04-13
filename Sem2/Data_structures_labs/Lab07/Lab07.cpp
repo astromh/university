@@ -3,10 +3,21 @@
 #include <vector>
 #include <cstdlib>  
 #include <iomanip> 
+#include <algorithm>
 #include <random>
 #include <string>
 
 using namespace std;
+
+struct AVLNode {
+    int value;
+    int height;
+    int count;
+    AVLNode* left;
+    AVLNode* right;
+
+    AVLNode(int v) : value(v), height(1), count(1), left(nullptr), right(nullptr) {}
+};
 
 int ReadPositiveInt(const string& prompt, int MaxValue);
 vector<int> SpiralOrder(int** Arr, int N, int M);
@@ -15,6 +26,22 @@ void BinarySearch(const vector<int>&Arr, int n);
 void GenerateMatrix(int** Arr, int N, int M);
 void PrintMatrix(int** A, int N, int M);
 void LinearSearch(const vector<int>&Arr, int n);
+
+int GetHeight(AVLNode* node);
+int GetBalance(AVLNode* node);
+void UpdateHeight(AVLNode* node);
+
+AVLNode* RotateRight(AVLNode* y);
+AVLNode* RotateLeft(AVLNode* x);
+
+AVLNode* InsertAVL(AVLNode* node, int value);
+bool SearchAVL(AVLNode* root, int value, int& comparisons);
+
+void PrintInOrder(AVLNode* root);
+void PrintPreOrder(AVLNode* root);
+void PrintPostOrder(AVLNode* root);
+
+void DeleteTree(AVLNode* root);
 
 int main() {
     const int MAXN = 100;
@@ -54,7 +81,40 @@ int main() {
 
     BinarySearch(SortedMatrix, n);
 
-    for (int i = 0; i < N; ++i) delete[] Arr[i];
+    AVLNode* root = nullptr;
+
+    for (int i = 0; i < SpiralMatrix.size(); ++i) {
+        root = InsertAVL(root, SpiralMatrix[i]);
+    }
+
+    int avlComparisons = 0;
+    bool avlFound = SearchAVL(root, n, avlComparisons);
+
+    cout << "\nAVL Tree Search: ";
+    if (avlFound) {
+        cout << "\n[+] The number was found!";
+        cout << "\n[+] Number of comparisons: " << avlComparisons << "\n";
+    } else {
+        cout << "\n[-] The number was not found!";
+        cout << "\n[+] Number of comparisons: " << avlComparisons << "\n";
+    }
+
+    cout << "\n[+] AVL Tree Inorder Traversal:\n";
+    PrintInOrder(root);
+    cout << "\n";
+
+    cout << "\n[+] AVL Tree Preorder Traversal:\n";
+    PrintPreOrder(root);
+    cout << "\n";
+
+    cout << "\n[+] AVL Tree Postorder Traversal:\n";
+    PrintPostOrder(root);
+    cout << "\n";
+
+    DeleteTree(root);
+    for (int i = 0; i < N; ++i) {
+        delete[] Arr[i];
+    }
     delete[] Arr;
 
     return 0;
@@ -227,3 +287,152 @@ void PrintMatrix(int** A, int N, int M) {
     cout << "\n";
 }
 
+
+// ==================================================== TREE ===========================================
+
+int GetHeight(AVLNode* node) {
+    if (node == nullptr) return 0;
+    return node->height;
+}
+
+void UpdateHeight(AVLNode* node) {
+    if (node != nullptr) {
+        int LeftHeight = GetHeight(node->left);
+        int RightHeight = GetHeight(node->right);
+        node->height = 1 + max(LeftHeight, RightHeight);
+    }
+}
+
+int GetBalance(AVLNode* node) {
+    if (node == nullptr) return 0;
+    return GetHeight(node->left) - GetHeight(node->right);
+}
+
+AVLNode* RotateRight(AVLNode* y) {
+    AVLNode* x = y->left;
+    AVLNode* T2 = x->right;
+
+    x->right = y;
+    y->left = T2;
+
+    UpdateHeight(y);
+    UpdateHeight(x);
+
+    return x;
+}
+
+AVLNode* RotateLeft(AVLNode* x) {
+    AVLNode* y = x->right;
+    AVLNode* T2 = y->left;
+
+    y->left = x;
+    x->right = T2;
+
+    UpdateHeight(x);
+    UpdateHeight(y);
+
+    return y;
+}
+
+AVLNode* InsertAVL(AVLNode* node, int value) {
+    if (node == nullptr) {
+        return new AVLNode(value);
+    }
+
+    if (value < node->value) {
+        node->left = InsertAVL(node->left, value);
+    }
+    else if (value > node->value) {
+        node->right = InsertAVL(node->right, value);
+    }
+    else {
+        node->count++;
+        return node;
+    }
+
+    UpdateHeight(node);
+
+    int balance = GetBalance(node);
+
+    // Left-Left
+    if (balance > 1 && value < node->left->value) {
+        return RotateRight(node);
+    }
+
+    // Right-Right
+    if (balance < -1 && value > node->right->value) {
+        return RotateLeft(node);
+    }
+
+    // Left-Right
+    if (balance > 1 && value > node->left->value) {
+        node->left = RotateLeft(node->left);
+        return RotateRight(node);
+    }
+
+    // Right-Left
+    if (balance < -1 && value < node->right->value) {
+        node->right = RotateRight(node->right);
+        return RotateLeft(node);
+    }
+
+    return node;
+}
+
+bool SearchAVL(AVLNode* root, int value, int& comparisons) {
+    AVLNode* current = root;
+
+    while (current != nullptr) {
+        comparisons++;
+
+        if (value == current->value) {
+            return true;
+        }
+        else if (value < current->value) {
+            current = current->left;
+        }
+        else {
+            current = current->right;
+        }
+    }
+
+    return false;
+}
+
+void PrintInOrder(AVLNode* root) {
+    if (root == nullptr) return;
+
+    PrintInOrder(root->left);
+    for (int i = 0; i < root->count; ++i) {
+        cout << root->value << "\t";
+    }
+    PrintInOrder(root->right);
+}
+
+void PrintPreOrder(AVLNode* root) {
+    if (root == nullptr) return;
+
+    for (int i = 0; i < root->count; ++i) {
+        cout << root->value << "\t";
+    }
+    PrintPreOrder(root->left);
+    PrintPreOrder(root->right);
+}
+
+void PrintPostOrder(AVLNode* root) {
+    if (root == nullptr) return;
+
+    PrintPostOrder(root->left);
+    PrintPostOrder(root->right);
+    for (int i = 0; i < root->count; ++i) {
+        cout << root->value << "\t";
+    }
+}
+
+void DeleteTree(AVLNode* root) {
+    if (root == nullptr) return;
+
+    DeleteTree(root->left);
+    DeleteTree(root->right);
+    delete root;
+}
