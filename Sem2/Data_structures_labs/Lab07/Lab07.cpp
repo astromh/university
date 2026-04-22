@@ -22,6 +22,7 @@ struct AVLNode {
 int ReadPositiveInt(const string& prompt, int MaxValue);
 vector<int> SpiralOrder(int** Arr, int N, int M);
 vector<int> CopySort(const vector<int>&Arr);
+vector<int> ReadTargetList(int size);
 void BinarySearch(const vector<int>&Arr, int n);
 void GenerateMatrix(int** Arr, int N, int M);
 void PrintMatrix(int** A, int N, int M);
@@ -63,15 +64,8 @@ int main() {
     for (int i=0; i<SpiralMatrix.size(); ++i) {
         cout << SpiralMatrix[i] << "\t";
     }
+
     cout << "\n";
-
-    int n;
-    // Needs to be filtered
-    cout << "[?] Enter the number you want to search for: ";
-    cin >> n;
-
-    LinearSearch(SpiralMatrix, n);
-
     cout << "\n[+] The sorted form of the matrix: \n";
     vector<int> SortedMatrix = CopySort(SpiralMatrix);
     for (int i=0; i<SortedMatrix.size(); ++i) {
@@ -79,24 +73,32 @@ int main() {
     }
     cout << "\n";
 
-    BinarySearch(SortedMatrix, n);
-
     AVLNode* root = nullptr;
-
     for (int i = 0; i < SpiralMatrix.size(); ++i) {
         root = InsertAVL(root, SpiralMatrix[i]);
     }
 
-    int avlComparisons = 0;
-    bool avlFound = SearchAVL(root, n, avlComparisons);
+    vector<int> targets = ReadTargetList(SpiralMatrix.size());
+    // Needs to be filtered
+    for (int i=0; i<targets.size(); ++i) {
+        int target = targets[i];
 
-    cout << "\nAVL Tree Search: ";
-    if (avlFound) {
-        cout << "\n[+] The number was found!";
-        cout << "\n[+] Number of comparisons: " << avlComparisons << "\n";
-    } else {
-        cout << "\n[-] The number was not found!";
-        cout << "\n[+] Number of comparisons: " << avlComparisons << "\n";
+        cout << "\n\n==============================\n";
+        cout << "[+] Searching for " << target << "\n\n";
+
+        LinearSearch(SpiralMatrix, target);
+        BinarySearch(SortedMatrix, target);
+        int avlComparisons = 0;
+        bool avlFound = SearchAVL(root, target, avlComparisons);
+
+        cout << "\nAVL Tree Search: ";
+        if (avlFound) {
+            cout << "\n[+] The number was found!";
+            cout << "\n[+] Number of comparisons: " << avlComparisons << "\n";
+        } else {
+            cout << "\n[-] The number was not found!";
+            cout << "\n[+] Number of comparisons: " << avlComparisons << "\n";
+        }
     }
 
     cout << "\n[+] AVL Tree Inorder Traversal:\n";
@@ -120,10 +122,12 @@ int main() {
     return 0;
 }
 
-void FoundNumber(bool found, int comparisons, int position) {
+void FoundNumber(bool found, int comparisons, int position, const string& positionLabel) {
     if (found) {
         cout << "\n[+] The number was found!";
-        cout << "\n[+] Position in spiral array: " << position;
+        if (position != -1) {
+            cout << "\n[+] " << positionLabel << ": " << position;
+        }
         cout << "\n[+] Number of comparisons: " << comparisons << "\n";
     } else {
         cout << "\n[-] The number was not found!(";
@@ -170,6 +174,17 @@ vector<int> SpiralOrder(int** Arr, int N, int M) {
 
 }
 
+vector<int> ReadTargetList(int size) {
+    int k = ReadPositiveInt("[?] How many numbers you want to search for: ", size);
+
+    vector<int> targets(k);
+    cout << "[?] Enter " << k << " numbers to search for: ";
+    for (int i=0; i<k; ++i) {
+        cin >> targets[i];
+    }
+    return targets;
+}
+
 void BinarySearch(const vector<int>&Arr, int n) {
     cout << "\nBinary Search: ";
     int left = 0;
@@ -196,7 +211,7 @@ void BinarySearch(const vector<int>&Arr, int n) {
         }
     }
 
-    FoundNumber(found, comparisons, position);
+    FoundNumber(found, comparisons, position, "Posittion in Sorted array");
 }
 
 void LinearSearch(const vector<int>&Arr, int n) {
@@ -214,7 +229,7 @@ void LinearSearch(const vector<int>&Arr, int n) {
         }
     }
 
-    FoundNumber(found, comparisons, position);
+    FoundNumber(found, comparisons, position, "Position in Spiral array");
 }
 
 int ReadPositiveInt(const string& prompt, int MaxValue) {

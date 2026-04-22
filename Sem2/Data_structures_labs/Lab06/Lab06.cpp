@@ -5,6 +5,8 @@
 #include <iomanip> 
 #include <random>
 #include <string>
+#include <cctype>     
+#include <sstream> 
 
 using namespace std;
 
@@ -51,6 +53,8 @@ int DigitSortByMethod(int element, SortFn sorter, Stats& s);
 Stats RunAndPrint(int** original, int N, int M, const string& name, SortFn sorter);
 
 // Matrix input methods
+char ReadChoiceRM(const string& prompt);
+int ReadStrictIntLine(const string& prompt); 
 void ManualInput(int** Arr, int N, int M);
 void RandomInput(int** Arr, int N, int M);
 
@@ -65,12 +69,9 @@ int main() {
     int** Arr = new int*[N];
     for (int i = 0; i < N; ++i) Arr[i] = new int[M];
 
-    char input_value;
-    do {
-        cout << "\nDo you want to Randomly generate the Matrix or enter it manually? (r/m): ";
-        cin >> input_value;
-        input_value = (char)tolower((unsigned char)input_value); // CHANGED
-    } while (input_value != 'r' && input_value != 'm');
+    char input_value = ReadChoiceRM("Do you want to Randomly generate the Matrix or enter it manually? (r/m): ");
+    if (input_value == 'm') ManualInput(Arr, N, M);
+    else RandomInput(Arr, N, M);
 
     if (input_value == 'm') ManualInput(Arr, N, M);
     else RandomInput(Arr, N, M);
@@ -291,6 +292,62 @@ void FreeMatrix(int** A, int N) {
 
 // ========================== Matrix input methods ==========================
 
+char ReadChoiceRM(const string& prompt) {
+    while (true) {
+        cout << prompt;
+
+        string line;
+        if (!getline(cin >> ws, line)) {
+            cin.clear();
+            continue;
+        }
+
+        istringstream iss(line);
+        char c, extra;
+
+        if (!(iss >> c) || (iss >> extra)) {
+            cout << "[-] Invalid input, enter only 'r' or 'm'.\n";
+            continue;
+        }
+
+        c = (char)tolower((unsigned char)c);
+        if (c != 'r' && c != 'm') {
+            cout << "[-] Invalid input, enter only 'r' or 'm'.\n";
+            continue;
+        }
+
+        return c;
+    }
+}
+
+int ReadStrictIntLine(const string& prompt) {
+    while (true) {
+        cout << prompt;
+
+        string line;
+        if (!getline(cin >> ws, line)) {
+            cin.clear();
+            continue;
+        }
+
+        istringstream iss(line);
+        int value;
+        char extra;
+
+        if (!(iss >> value)) {
+            cout << "[-] Invalid input, enter ONE integer only.\n";
+            continue;
+        }
+
+        if (iss >> extra) {
+            cout << "[-] Invalid input, enter ONE integer only.\n";
+            continue;
+        }
+
+        return value;
+    }
+}
+
 void RandomInput(int** Arr, int N, int M) {
     random_device rd;
     mt19937 gen(rd());
@@ -307,13 +364,8 @@ void ManualInput(int** Arr, int N, int M) {
     cout << "\nNow enter " << (N * M) << " elements (row by row):\n";
     for (int i = 0; i < N; ++i) {
         for (int j = 0; j < M; ++j) {
-            cout << "Arr[" << i << "][" << j << "] = ";
-            while (!(cin >> Arr[i][j])) {
-                cout << "[-] Invalid input, please try again.\n";
-                cin.clear();
-                cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                cout << "Arr[" << i << "][" << j << "] = ";
-            }
+            string prompt = "Arr[" + to_string(i) + "][" + to_string(j) + "] = ";
+            Arr[i][j] = ReadStrictIntLine(prompt); // CHANGED
         }
     }
 }
@@ -321,32 +373,29 @@ void ManualInput(int** Arr, int N, int M) {
 // ========================== Input control ==========================
 
 int ReadPositiveInt(const string& prompt, int MaxValue) {
-    int x;
     while (true) {
         cout << prompt;
-        string token;
-        if (!(cin >> token)) {
-            cout << "[-] Invalid input, please try again!\n"; 
+
+        string line;
+        if (!getline(cin >> ws, line)) {
             cin.clear();
             continue;
         }
 
-        size_t pos = 0;
-        try {
-            long long val = stoll(token, &pos);
-            if (pos != token.size()) {
-                cout << "[-] Invalid input, please try again!\n";
-                continue;
-            }
-            if (val <= 0 || val > MaxValue) {
-                cout << "[-] The input must be between 1 and " << MaxValue << ". Try again.\n";
-                continue;
-            }
-            x = (int)val;
-            return x;
-        } catch (...) {
-            cout << "[-] Invalid input, please try again!\n";
+        istringstream iss(line);
+        long long value;
+        char extra;
+
+        if (!(iss >> value) || (iss >> extra)) {
+            cout << "[-] Invalid input, enter ONE integer only.\n";
             continue;
         }
+
+        if (value <= 0 || value > MaxValue) {
+            cout << "[-] The input must be between 1 and " << MaxValue << ". Try again.\n";
+            continue;
+        }
+
+        return (int)value;
     }
 }
