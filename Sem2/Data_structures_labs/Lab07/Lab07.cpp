@@ -28,6 +28,9 @@ void GenerateMatrix(int** Arr, int N, int M);
 void PrintMatrix(int** A, int N, int M);
 void LinearSearch(const vector<int>&Arr, int n);
 
+int ReadAnyInt(const string& prompt);
+vector<int> ReadTargetList(int size);
+
 int GetHeight(AVLNode* node);
 int GetBalance(AVLNode* node);
 void UpdateHeight(AVLNode* node);
@@ -66,9 +69,9 @@ int main() {
     }
 
     cout << "\n";
-    cout << "\n[+] The sorted form of the matrix: \n";
+    cout << "\n[+] The sorted form of the spiral array: \n";
     vector<int> SortedMatrix = CopySort(SpiralMatrix);
-    for (int i=0; i<SortedMatrix.size(); ++i) {
+    for (int i = 0; i < SortedMatrix.size(); ++i) {
         cout << SortedMatrix[i] << "\t";
     }
     cout << "\n";
@@ -79,8 +82,8 @@ int main() {
     }
 
     vector<int> targets = ReadTargetList(SpiralMatrix.size());
-    // Needs to be filtered
-    for (int i=0; i<targets.size(); ++i) {
+
+    for (int i = 0; i < targets.size(); ++i) {
         int target = targets[i];
 
         cout << "\n\n==============================\n";
@@ -88,6 +91,7 @@ int main() {
 
         LinearSearch(SpiralMatrix, target);
         BinarySearch(SortedMatrix, target);
+
         int avlComparisons = 0;
         bool avlFound = SearchAVL(root, target, avlComparisons);
 
@@ -175,13 +179,16 @@ vector<int> SpiralOrder(int** Arr, int N, int M) {
 }
 
 vector<int> ReadTargetList(int size) {
-    int k = ReadPositiveInt("[?] How many numbers you want to search for: ", size);
+    int k = ReadPositiveInt("[?] How many numbers do you want to search for: ", size);
 
-    vector<int> targets(k);
-    cout << "[?] Enter " << k << " numbers to search for: ";
-    for (int i=0; i<k; ++i) {
-        cin >> targets[i];
+    vector<int> targets;
+    targets.reserve(k);
+
+    for (int i = 0; i < k; ++i) {
+        string prompt = "[?] Enter target #" + to_string(i + 1) + ": ";
+        targets.push_back(ReadAnyInt(prompt));
     }
+
     return targets;
 }
 
@@ -211,7 +218,7 @@ void BinarySearch(const vector<int>&Arr, int n) {
         }
     }
 
-    FoundNumber(found, comparisons, position, "Posittion in Sorted array");
+    FoundNumber(found, comparisons, position, "Position in sorted array");
 }
 
 void LinearSearch(const vector<int>&Arr, int n) {
@@ -259,6 +266,38 @@ int ReadPositiveInt(const string& prompt, int MaxValue) {
         } catch (...) {
             cout << "[-] Invalid input, please try again!\n";
             continue;
+        }
+    }
+}
+
+int ReadAnyInt(const string& prompt) {
+    int x;
+    while (true) {
+        cout << prompt;
+        string token;
+        if (!(cin >> token)) {
+            cout << "[-] Invalid input, please try again!\n";
+            cin.clear();
+            continue;
+        }
+
+        size_t pos = 0;
+        try {
+            long long val = stoll(token, &pos);
+            if (pos != token.size()) {
+                cout << "[-] Invalid input, please try again!\n";
+                continue;
+            }
+
+            if (val < numeric_limits<int>::min() || val > numeric_limits<int>::max()) {
+                cout << "[-] Number is out of int range, please try again!\n";
+                continue;
+            }
+
+            x = static_cast<int>(val);
+            return x;
+        } catch (...) {
+            cout << "[-] Invalid input, please try again!\n";
         }
     }
 }
