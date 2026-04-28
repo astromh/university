@@ -25,7 +25,7 @@ struct ResultRow {
 using SortFn = void(*)(int* arr, int n, bool ascending, Stats& s);
 
 static inline void SwapCount(int& a, int& b, Stats& s) {
-    ++s.swp; // CHANGED: mov removed
+    s.swp += 2; // CHANGED: mov removed
     int t = a;
     a = b;
     b = t;
@@ -70,9 +70,6 @@ int main() {
     for (int i = 0; i < N; ++i) Arr[i] = new int[M];
 
     char input_value = ReadChoiceRM("Do you want to Randomly generate the Matrix or enter it manually? (r/m): ");
-    if (input_value == 'm') ManualInput(Arr, N, M);
-    else RandomInput(Arr, N, M);
-
     if (input_value == 'm') ManualInput(Arr, N, M);
     else RandomInput(Arr, N, M);
 
@@ -150,9 +147,11 @@ void InsertionSort(int* arr, int n, bool ascending, Stats& s) {
 
             arr[j + 1] = arr[j];
             --j;
+            ++s.swp;
         }
 
         arr[j + 1] = key;
+        ++s.swp;
     }
 }
 
@@ -180,10 +179,12 @@ void ShellSort(int* arr, int n, bool ascending, Stats& s) {
                 if (!needShift) break;
 
                 arr[j] = arr[j - gap];
+                ++s.swp;
                 j -= gap;
             }
 
             arr[j] = temp;
+            ++s.swp;
         }
     }
 }

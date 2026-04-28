@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <random>
 #include <string>
+#include <sstream>
 
 using namespace std;
 
@@ -239,34 +240,32 @@ void LinearSearch(const vector<int>&Arr, int n) {
     FoundNumber(found, comparisons, position, "Position in Spiral array");
 }
 
+
 int ReadPositiveInt(const string& prompt, int MaxValue) {
-    int x;
     while (true) {
         cout << prompt;
-        string token;
-        if (!(cin >> token)) {
-            cout << "[!] Invalid input, Please try again!\n";
+
+        string line;
+        if (!getline(cin >> ws, line)) {
             cin.clear();
             continue;
         }
 
-        size_t pos = 0;
-        try {
-            long long val = stoll(token, &pos);
-            if (pos != token.size()) {
-                cout << "[-] Invalid input, please try again!\n";
-                continue;
-            }
-            if (val <= 0 || val > MaxValue) {
-                cout << "[-] The input must be between 1 and " << MaxValue << ". Try again.\n";
-                continue;
-            }
-            x = (int)val;
-            return x;
-        } catch (...) {
-            cout << "[-] Invalid input, please try again!\n";
+        istringstream iss(line);
+        long long value;
+        char extra;
+
+        if (!(iss >> value) || (iss >> extra)) {
+            cout << "[-] Invalid input, enter ONE integer only.\n";
             continue;
         }
+
+        if (value <= 0 || value > MaxValue) {
+            cout << "[-] The input must be between 1 and " << MaxValue << ". Try again.\n";
+            continue;
+        }
+
+        return (int)value;
     }
 }
 
