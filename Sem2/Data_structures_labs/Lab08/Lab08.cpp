@@ -2,9 +2,11 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
+#include <cstdint>
 #include <algorithm>
 
 using namespace std;
+using HashType = uint32_t;
 
 struct Dish {
     string name;
@@ -12,11 +14,13 @@ struct Dish {
     string property;
 };
 
-void AddDishToHashTable(const Dish& dish, unordered_map<size_t, vector<Dish>>& hashTable);
-void SearchDish(const unordered_map<size_t, vector<Dish>>& hashTable, vector<string> Components, 
+void AddDishToHashTable(const Dish& dish, unordered_map<HashType, vector<Dish>>& hashTable);
+void SearchDish(const unordered_map<HashType, vector<Dish>>& hashTable, vector<string> Components, 
                 string property);
+void SearchByHash(const unordered_map<HashType, vector<Dish>>& hashTable, HashType searchHash);
 string BuildKey(vector<string> components, string property);
-size_t GetHash(const string& key);
+HashType MurmurHash2(const void* key, size_t len, HashType seed);
+HashType GetHash(const string& key);
 
 int main() {
     vector<Dish> menu;
@@ -38,7 +42,7 @@ int main() {
 
     Dish dish4;
     dish4.name = "Roast Master";
-    dish4.components = {"fillet", "cucumber", "cheese", "potatoes"};
+    dish4.components = {"fillet", "cucumber", "potatoes"};
     dish4.property = "not_kosher";
 
     menu.push_back(dish1);
@@ -46,27 +50,49 @@ int main() {
     menu.push_back(dish3);
     menu.push_back(dish4);
 
-    unordered_map<size_t, vector<Dish>> hashTable;
+    unordered_map<HashType, vector<Dish>> hashTable;
 
     for (const Dish& dish : menu) {
         AddDishToHashTable(dish, hashTable);
     }
 
-    vector<string> SearchComponents;
-    string component;
-    string SearchProperty;
+    int choice;
 
-    cout << "\n[?] Enter 3 components for search:" << endl;
-    for (int i=0; i<3; ++i) {
-        cout << i+1 << ") Component: ";
-        cin >> component;
-        SearchComponents.push_back(component);
+    cout << "\nChoose search type:" << endl;
+    cout << "1. Search by 3 components and property" << endl;
+    cout << "2. Search by hash" << endl;
+    cout << "Your choice: ";
+    cin >> choice;
+
+    if (choice == 1) {
+        vector<string> searchComponents;
+        string component;
+        string searchProperty;
+
+        cout << "\n[?] Enter 3 components for search:" << endl;
+
+        for (int i = 0; i < 3; ++i) {
+            cout << i + 1 << ") Component: ";
+            cin >> component;
+            searchComponents.push_back(component);
+        }
+
+        cout << "\n[?] Enter a property: ";
+        cin >> searchProperty;
+
+        SearchDish(hashTable, searchComponents, searchProperty);
     }
+    else if (choice == 2) {
+        HashType searchHash;
 
-    cout << "\n[?] Enter a property: ";
-    cin >> SearchProperty;
+        cout << "\n[?] Enter hash value: ";
+        cin >> searchHash;
 
-    SearchDish(hashTable, SearchComponents, SearchProperty);
+        SearchByHash(hashTable, searchHash);
+    }
+    else {
+        cout << "Invalid choice." << endl;
+    }
 
     return 0;
 }
@@ -82,60 +108,140 @@ string BuildKey(vector<string> components, string property) {
     return key;
 }
 
-size_t GetHash(const string& key) {
-    return hash<string>{}(key);
+HashType MurmurHash2(const void* key, size_t len, HashType seed) {
+    const HashType m = 0x5bd1e995;
+    const int r = 24;
+
+    HashType h = seed ^ static_cast<HashType>(len);
+
+    const unsigned char* data = static_cast<const unsigned char*>(key);
+
+    while (len >= 4) {
+        HashType k = static_cast<HashType>(data[0])
+                   | (static_cast<HashType>(data[1]) << 8)
+                   | (static_cast<HashType>(data[2]) << 16)
+                   | (static_cast<HashType>(data[3]) << 24);
+
+        k *= m;
+        k ^= k >> r;
+        k *= m;
+
+        h *= m;
+        h ^= k;
+
+        data += 4;
+        len -= 4;
+    }
+
+    switch (len) {
+        case 3:
+            h ^= static_cast<HashType>(data[2]) << 16;
+        case 2:
+            h ^= static_cast<HashType>(data[1]) << 8;
+        case 1:
+            h ^= static_cast<HashType>(data[0]);
+            h *= m;
+    }
+
+    h ^= h >> 13;
+    h *= m;
+    h ^= h >> 15;
+
+    return h;
 }
 
-void AddDishToHashTable(const Dish& dish, unordered_map<size_t, vector<Dish>>& hashTable) {
+HashType GetHash(const string& key) {
+    const HashType seed = 0x9747b28c;
+    return MurmurHash2(key.data(), key.size(), seed);
+}
+
+void AddDishToHashTable(const Dish& dish, unordered_map<HashType, vector<Dish>>& hashTable) {
     string key = BuildKey(dish.components, dish.property);
-    size_t hashValue = GetHash(key);
+    HashType hashValue = GetHash(key);
 
     hashTable[hashValue].push_back(dish);
 
     cout << "Dish: " << dish.name << endl;
     cout << "Key: " << key << endl;
-    cout << "Hash: " << hashValue << endl;
+    cout << "MurmurHash2: " << hashValue << endl;
     cout << "----------------------" << endl;
-
 }
 
-void SearchDish(const unordered_map<size_t, vector<Dish>>& hashTable, 
-    vector<string> searchComponents, string searchProperty) {
+void SearchDish(
+    const unordered_map<HashType, vector<Dish>>& hashTable,
+    vector<string> searchComponents,
+    string searchProperty
+) {
+    string searchKey = BuildKey(searchComponents, searchProperty);
+    HashType searchHash = GetHash(searchKey);
 
-    string SearchKey = BuildKey(searchComponents, searchProperty);
-    size_t SearchHash = GetHash(SearchKey);
+    cout << "\nSearch Key: " << searchKey << endl;
+    cout << "Search MurmurHash2: " << searchHash << endl;
 
-    cout << "\nSearch Key: " << SearchKey << endl;
-    cout << "Search Hash: " << SearchHash << endl;
-
-    auto it = hashTable.find(SearchHash);
+    auto it = hashTable.find(searchHash);
 
     if (it == hashTable.end()) {
         cout << "[-] No dishes found!" << endl;
+        cout << "Count of matching dishes: 0" << endl;
         return;
     }
 
-    bool found = false;
+    int count = 0;
 
-    for (const Dish& dish: it->second) {
+    for (const Dish& dish : it->second) {
         string dishKey = BuildKey(dish.components, dish.property);
 
-        if (dishKey == SearchKey) {
+        if (dishKey == searchKey) {
             cout << "\n[+] Dish Found: " << dish.name << endl;
 
             cout << "Components: ";
-            for (const string& component: dish.components) {
+            for (const string& component : dish.components) {
                 cout << component << " ";
             }
             cout << endl;
 
             cout << "Property: " << dish.property << endl;
 
-            found = true;
+            count++;
         }
     }
-    if (!found) {
+
+    if (count == 0) {
         cout << "No exact dish found. Hash collision happened." << endl;
     }
- 
+
+    cout << "\nCount of matching dishes: " << count << endl;
+}
+
+void SearchByHash(const unordered_map<HashType, vector<Dish>>& hashTable, HashType searchHash) {
+    cout << "\nSearch by hash: " << searchHash << endl;
+
+    auto it = hashTable.find(searchHash);
+
+    if (it == hashTable.end()) {
+        cout << "[-] No dishes found with this hash." << endl;
+        cout << "Count of dishes with this hash: 0" << endl;
+        return;
+    }
+
+    int count = 0;
+
+    for (const Dish& dish : it->second) {
+        string key = BuildKey(dish.components, dish.property);
+
+        cout << "\n[+] Dish Found: " << dish.name << endl;
+        cout << "Key: " << key << endl;
+
+        cout << "Components: ";
+        for (const string& component : dish.components) {
+            cout << component << " ";
+        }
+        cout << endl;
+
+        cout << "Property: " << dish.property << endl;
+
+        count++;
+    }
+
+    cout << "\nCount of dishes with this hash: " << count << endl;
 }
