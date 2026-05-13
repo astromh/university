@@ -27,7 +27,7 @@ int main() {
 
     Dish dish1;
     dish1.name = "Chef Burger";
-    dish1.components = {"fillet", "salad", "tomatoe"};
+    dish1.components = {"fillet", "salad", "tomato"};
     dish1.property = "lactose_free";
 
     Dish dish2;
@@ -37,7 +37,7 @@ int main() {
 
     Dish dish3;
     dish3.name = "Chef Roll";
-    dish3.components = {"stripes", "salad", "tomatoe"};
+    dish3.components = {"stripes", "salad", "tomato"};
     dish3.property = "halal";
 
     Dish dish4;
@@ -45,10 +45,22 @@ int main() {
     dish4.components = {"fillet", "cucumber", "potatoes"};
     dish4.property = "not_kosher";
 
+    Dish dish5;
+    dish5.name = "Diet Roll";
+    dish5.components = {"fillet", "salad", "tomato"};
+    dish5.property = "lactose_free";
+
+    Dish dish6;
+    dish6.name = "Vegetable Soup";
+    dish6.components = {"carrot", "dill", "potato"};
+    dish6.property = "vegetarian";
+
     menu.push_back(dish1);
     menu.push_back(dish2);
     menu.push_back(dish3);
     menu.push_back(dish4);
+    menu.push_back(dish5);
+    menu.push_back(dish6);
 
     unordered_map<HashType, vector<Dish>> hashTable;
 
